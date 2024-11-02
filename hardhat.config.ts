@@ -16,9 +16,9 @@ const config: HardhatUserConfig = {
   },
   networks: {
     taiko: {
-      url: process.env.TAIKO_RPC_URL || "https://rpc.test.taiko.xyz",
+      url: process.env.TAIKO_RPC_URL || "https://ethereum-holesky-rpc.publicnode.com",
       accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [],
-      chainId: 167004
+      chainId: 17000
     }
   }
 };
