@@ -9,8 +9,6 @@ contract Market {
 
     address public owner;
 
-    uint public fees;
-
     uint public resolvedTo;
 
     address public factory;
