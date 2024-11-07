@@ -214,8 +214,12 @@ contract Market {
             info.noPrice = 1e4;
             info.yesPrice = 0;
         }
+
         info.resolved = true;
         resolvedTo = variant;
+
+        Factory(factory).recordStats(0, msg.sender, "resolve");
+
         return true;
     }
 
@@ -237,7 +241,7 @@ contract Market {
 
                 require(impact <= maxImpact, "Price impact must not be up to 30%");
 
-                Factory(factory).recordVolume(amount);
+                Factory(factory).recordStats(amount, msg.sender, "volume");
 
                 profit;
                 
@@ -264,7 +268,7 @@ contract Market {
 
                 require(impact <= maxImpact, "Price impact must not be up to 30%");
 
-                Factory(factory).recordVolume(amountUSDC);
+                Factory(factory).recordStats(amountUSDC, msg.sender, "volume");
 
                 profit;
 
@@ -287,7 +291,7 @@ contract Market {
 
                 require(impact <= maxImpact, "Price impact must not be up to 30%");
 
-                Factory(factory).recordVolume(amount);
+                Factory(factory).recordStats(amount, msg.sender, "volume");
 
                 profit;
                 
@@ -314,7 +318,7 @@ contract Market {
 
                 require(impact <= maxImpact, "Price impact must not be up to 30%");
 
-                Factory(factory).recordVolume(amountUSDC);
+                Factory(factory).recordStats(amountUSDC, msg.sender, "volume");
 
                 profit;
 

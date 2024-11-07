@@ -12,6 +12,8 @@ contract Factory {
     struct Statistics {
         uint volume;
         uint totalPools;
+        uint uniqueWallets;
+        uint activeEvents;
     }
 
     mapping(uint=>address) markets;
@@ -21,6 +23,8 @@ contract Factory {
     mapping(address=>bool) knownMarkets;
 
     mapping(string=>bool) categoryExists;
+
+    mapping(address=>bool) uniqueWallets;
 
     Statistics public statistics;
 
@@ -40,6 +44,7 @@ contract Factory {
         }
         knownMarkets[contractAddress] = true;
         statistics.totalPools++;
+        statistics.activeEvents++;
         markets[statistics.totalPools] = contractAddress;
         return contractAddress;
     }
@@ -54,10 +59,30 @@ contract Factory {
         return (info, shares, volume);
     }
 
-    function recordVolume(uint amount) external returns(bool) {
+    function stringToBytes32(string memory source) internal pure returns (bytes32 result) {
+        bytes memory tempEmptyStringTest = bytes(source);
+        if (tempEmptyStringTest.length == 0) {
+            return 0x0;
+        }
+
+        assembly {
+            result := mload(add(source, 32))
+        }
+    }
+
+    function recordStats(uint amount, address account, string memory statType) external returns(bool) {
         require(knownMarkets[msg.sender] == true, "Call must be made from known market contract");
-        volumes[msg.sender] += amount;
-        statistics.volume += amount;
+        if (stringToBytes32(statType) == stringToBytes32("volume")) {
+            volumes[msg.sender] += amount;
+            statistics.volume += amount;
+            if (uniqueWallets[account] == false) {
+                uniqueWallets[account] = true;
+                statistics.uniqueWallets++;
+            }
+        }
+        else if (stringToBytes32(statType) == stringToBytes32("resolve")) {
+            statistics.activeEvents--;
+        }
         return true;
     }
 
