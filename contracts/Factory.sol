@@ -57,6 +57,7 @@ contract Factory {
     function recordVolume(uint amount) external returns(bool) {
         require(knownMarkets[msg.sender] == true, "Call must be made from known market contract");
         volumes[msg.sender] += amount;
+        statistics.volume += amount;
         return true;
     }
 
