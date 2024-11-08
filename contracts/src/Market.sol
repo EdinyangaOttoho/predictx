@@ -175,6 +175,8 @@ contract Market {
 
             uint ownedShares = shares[msg.sender].yesShares;
 
+            require(ownedShares > 0, "Must own shares to claim");
+
             uint expectedUSDC = (ownedShares * info.yesPrice) / multiplier;
 
             require(USDC.transfer(msg.sender, expectedUSDC), "USDC transfer failed");
@@ -189,6 +191,8 @@ contract Market {
         else if (variant == 0) { // No
 
             uint ownedShares = shares[msg.sender].noShares;
+
+            require(ownedShares > 0, "Must own shares to claim");
 
             uint expectedUSDC = (ownedShares * info.noPrice) / multiplier;
 
