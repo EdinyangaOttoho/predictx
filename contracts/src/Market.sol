@@ -152,7 +152,9 @@ contract Market {
         
         shares[msg.sender].liquidityShares -= shares_;
 
-        require((info.yesLiquidity + info.noLiquidity) - (yesToRemove + noToRemove) >= 10e6, "There must be at least 10 USDC leftover");
+        if (info.resolved == false) {
+            require((info.yesLiquidity + info.noLiquidity) - (yesToRemove + noToRemove) >= 10e6, "There must be at least 10 USDC leftover");
+        }
 
         info.yesLiquidity -= yesToRemove;
 
