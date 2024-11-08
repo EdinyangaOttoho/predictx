@@ -411,7 +411,7 @@ contract Market {
 
                 amountOut = (output - (output / 100)) * multiplier;
 
-                estimatedProfit = amountOut - amount;
+                estimatedProfit = ((amountOut * multiplier) - amount) / multiplier;
 
             }
             else if (buyOrSell == 0) { // Sell
@@ -451,7 +451,7 @@ contract Market {
 
                 amountOut = (output - (output / 100)) * multiplier;
 
-                estimatedProfit = amountOut - amount;
+                estimatedProfit = ((amountOut * multiplier) - amount) / multiplier;
 
             }
             else if (buyOrSell == 0) { // Sell
