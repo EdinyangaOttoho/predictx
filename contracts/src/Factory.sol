@@ -96,6 +96,17 @@ contract Factory {
 
         uint totalMarkets = statistics.totalPools;
 
+        uint numberOfPages;
+
+        if (totalMarkets % itemsPerPage == 0) {
+            numberOfPages = totalMarkets / itemsPerPage;
+        }
+        else {
+            numberOfPages = (totalMarkets / itemsPerPage) + 1;
+        }
+
+        require(page <= numberOfPages, "Page is out of bounds");
+
         require(totalMarkets > 0, "No market exists at the moment");
         
         uint startIndex = totalMarkets - ((page - 1) * itemsPerPage);
