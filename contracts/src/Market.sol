@@ -3,9 +3,11 @@ pragma solidity >=0.8.27;
 
 import "./Factory.sol";
 
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+
 contract Market {
 
-    address public USDCAddress;
+    IERC20 public USDC;
 
     address public owner;
 
@@ -43,7 +45,6 @@ contract Market {
 
         require(endDate_ > block.timestamp, "Market resolution must be set to a date in the future");
 
-        USDCAddress = USDCAddress_;
         info.title = title_;
         info.description = description_;
         info.yesPrice = 0;
@@ -56,6 +57,8 @@ contract Market {
         info.marketEnd = endDate_;
         info.categories = categories;
         info.liquidityShares = 0;
+
+        USDC = IERC20(USDCAddress_);
 
         owner = owner_;
         factory = factory_;
@@ -106,6 +109,8 @@ contract Market {
 
         shares[msg.sender].liquidityShares += sharesToGive;
 
+        require(USDC.transferFrom(msg.sender, address(this), liquidity), "USDC transfer failed");
+
         return true;
 
     }
@@ -127,7 +132,7 @@ contract Market {
         
         info.liquidityShares += sharesToGive;
 
-        // Deduct 'amount' USDC from user
+        require(USDC.transferFrom(msg.sender, address(this), amount), "USDC transfer failed");
 
         return true;
 
@@ -151,7 +156,7 @@ contract Market {
 
         info.noLiquidity -= noToRemove;
 
-        // Send yesToRemove and noToRemove as USDC
+        require(USDC.transfer(msg.sender, (yesToRemove + noToRemove)), "USDC transfer failed");
 
         return true;
 
@@ -168,7 +173,7 @@ contract Market {
 
             uint expectedUSDC = (ownedShares * info.yesPrice) / 1e4;
 
-            // Send USDC to user for Yes shares
+            require(USDC.transfer(msg.sender, expectedUSDC), "USDC transfer failed");
 
             info.yesShares -= ownedShares;
 
@@ -183,7 +188,7 @@ contract Market {
 
             uint expectedUSDC = (ownedShares * info.noPrice) / 1e4;
 
-            // Send USDC to user for No shares
+            require(USDC.transfer(msg.sender, expectedUSDC), "USDC transfer failed");
 
             info.noShares -= ownedShares;
 
@@ -253,7 +258,7 @@ contract Market {
 
                 info.noPrice = 1e4 - price;
 
-                // Receive USDC from user
+                require(USDC.transferFrom(msg.sender, address(this), amount), "USDC transfer failed");
 
             }
             else if (buyOrSell == 0) { // Sell
@@ -276,7 +281,7 @@ contract Market {
 
                 info.noPrice = 1e4 - price;
 
-                // Send USDC to user
+                require(USDC.transfer(msg.sender, amountUSDC), "USDC transfer failed");
 
             }
 
@@ -303,7 +308,7 @@ contract Market {
 
                 info.yesPrice = 1e4 - price;
 
-                // Receive USDC from user
+                require(USDC.transferFrom(msg.sender, address(this), amount), "USDC transfer failed");
 
             }
             else if (buyOrSell == 0) { // Sell
@@ -326,7 +331,7 @@ contract Market {
 
                 info.yesPrice = 1e4 - price;
 
-                // Send USDC to user
+                require(USDC.transfer(msg.sender, amountUSDC), "USDC transfer failed");
 
             }
 
