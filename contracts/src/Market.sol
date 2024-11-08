@@ -15,7 +15,7 @@ contract Market {
 
     address public factory;
 
-    uint private multiplier = 1e6;
+    uint private multiplier = 1e4;
 
     struct Information {
         string title;
@@ -225,9 +225,12 @@ contract Market {
         info.resolved = true;
         resolvedTo = variant;
 
-        Factory(factory).recordStats(0, msg.sender, "resolve");
+        uint[] memory data;
+
+        Factory(factory).recordStats(0, msg.sender, "resolve", data);
 
         return true;
+
     }
 
     function placeOrder (uint variant, uint buyOrSell, uint amount) external returns (bool) {
@@ -248,7 +251,14 @@ contract Market {
 
                 require(impact <= maxImpact, "Price impact must not be up to 30%");
 
-                Factory(factory).recordStats(amount, msg.sender, "volume");
+                // data holds [variant, buyOrSell, price]
+
+                uint[] memory data = new uint[](3);
+                data[0] = variant;
+                data[1] = buyOrSell;
+                data[2] = info.yesPrice;
+
+                Factory(factory).recordStats(amount, msg.sender, "volume", data);
 
                 profit;
                 
@@ -275,7 +285,14 @@ contract Market {
 
                 require(impact <= maxImpact, "Price impact must not be up to 30%");
 
-                Factory(factory).recordStats(amountUSDC, msg.sender, "volume");
+                // data holds [variant, buyOrSell, price]
+
+                uint[] memory data = new uint[](3);
+                data[0] = variant;
+                data[1] = buyOrSell;
+                data[2] = info.yesPrice;
+
+                Factory(factory).recordStats(amountUSDC, msg.sender, "volume", data);
 
                 profit;
 
@@ -298,7 +315,14 @@ contract Market {
 
                 require(impact <= maxImpact, "Price impact must not be up to 30%");
 
-                Factory(factory).recordStats(amount, msg.sender, "volume");
+                // data holds [variant, buyOrSell, price]
+
+                uint[] memory data = new uint[](3);
+                data[0] = variant;
+                data[1] = buyOrSell;
+                data[2] = info.noPrice;
+
+                Factory(factory).recordStats(amount, msg.sender, "volume", data);
 
                 profit;
                 
@@ -325,7 +349,14 @@ contract Market {
 
                 require(impact <= maxImpact, "Price impact must not be up to 30%");
 
-                Factory(factory).recordStats(amountUSDC, msg.sender, "volume");
+                // data holds [variant, buyOrSell, price]
+
+                uint[] memory data = new uint[](3);
+                data[0] = variant;
+                data[1] = buyOrSell;
+                data[2] = info.noPrice;
+
+                Factory(factory).recordStats(amountUSDC, msg.sender, "volume", data);
 
                 profit;
 
@@ -380,7 +411,7 @@ contract Market {
 
                 amountOut = (output - (output / 100)) * multiplier;
 
-                estimatedProfit = (amountOut * multiplier) - amount;
+                estimatedProfit = amountOut - amount;
 
             }
             else if (buyOrSell == 0) { // Sell
@@ -420,7 +451,7 @@ contract Market {
 
                 amountOut = (output - (output / 100)) * multiplier;
 
-                estimatedProfit = (amountOut * multiplier) - amount;
+                estimatedProfit = amountOut - amount;
 
             }
             else if (buyOrSell == 0) { // Sell

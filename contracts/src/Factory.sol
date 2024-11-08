@@ -16,6 +16,19 @@ contract Factory {
         uint activeEvents;
     }
 
+    event Trade(
+        address indexed market,
+        address indexed account,
+        uint variant,
+        uint buyOrSell,
+        uint price,
+        uint volume
+    );
+
+    event Category(
+        string indexed name
+    );
+
     mapping(uint=>address) markets;
 
     mapping(address=>uint) public volumes;
@@ -49,6 +62,7 @@ contract Factory {
             if (categoryExists[categories_[i]] == false) {
                 categoryExists[categories_[i]] = true;
                 categories.push(categories_[i]);
+                emit Category(categories_[i]);
             }
         }
         knownMarkets[contractAddress] = true;
@@ -93,20 +107,28 @@ contract Factory {
         }
     }
 
-    function recordStats(uint amount, address account, string memory statType) external returns(bool) {
+    function recordStats(uint amount, address account, string memory statType, uint[] memory data) external returns(bool) {
+        
         require(knownMarkets[msg.sender] == true, "Call must be made from known market contract");
+
         if (stringToBytes32(statType) == stringToBytes32("volume")) {
+
+            // data holds [variant, buyOrSell, price]
+
             volumes[msg.sender] += amount;
             statistics.volume += amount;
             if (uniqueWallets[account] == false) {
                 uniqueWallets[account] = true;
                 statistics.uniqueWallets++;
             }
+            emit Trade(msg.sender, account, data[0], data[1], data[2], amount);
         }
         else if (stringToBytes32(statType) == stringToBytes32("resolve")) {
             statistics.activeEvents--;
         }
+
         return true;
+
     }
 
     function fetchMarkets(uint page, uint itemsPerPage, address account) external view returns (Market.Information[] memory, address[] memory) {
