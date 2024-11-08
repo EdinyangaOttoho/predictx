@@ -89,20 +89,26 @@ contract Factory {
         return true;
     }
 
-    function fetchMarkets(uint page, uint itemPerPage, address account) external view returns (Market.Information[] memory, address[] memory) {
+    function fetchMarkets(uint page, uint itemsPerPage, address account) external view returns (Market.Information[] memory, address[] memory) {
         
         require(page > 0, "Page must be greater than 0");
-        require(itemPerPage > 0, "Items per page must be greater than 0");
+        require(itemsPerPage > 0, "Items per page must be greater than 0");
 
         uint totalMarkets = statistics.totalPools;
-        uint startIndex = (page - 1) * itemPerPage;
-        uint endIndex = startIndex + itemPerPage;
 
-        if (endIndex > totalMarkets) {
-            endIndex = totalMarkets;
+        require(totalMarkets > 0, "No market exists at the moment");
+        
+        uint startIndex = totalMarkets - ((page - 1) * itemsPerPage);
+        uint endIndex;
+        
+        if (startIndex < itemsPerPage) {
+            endIndex = 1;
+        }
+        else {
+            endIndex = (startIndex - itemsPerPage) + 1;
         }
 
-        uint numberOfItems = endIndex - startIndex;
+        uint numberOfItems = (startIndex - endIndex) + 1;
 
         require(numberOfItems > 0, "No markets found for this page");
 
@@ -112,9 +118,9 @@ contract Factory {
 
         // Populate the paginated array
         uint count = 0;
-        for (uint i = startIndex + 1; i <= endIndex; i++) {
-            contractAddresses[count] = markets[startIndex + i];
-            (Market.Information memory info, Market.Shares memory shares) = Market(markets[startIndex + i]).getInfo(account);
+        for (uint i = startIndex; i >= endIndex; i--) {
+            contractAddresses[count] = markets[i];
+            (Market.Information memory info, Market.Shares memory shares) = Market(markets[i]).getInfo(account);
             shares;
             paginatedMarkets[count] = info;
             count++;

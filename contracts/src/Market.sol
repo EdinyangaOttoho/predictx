@@ -15,6 +15,8 @@ contract Market {
 
     address public factory;
 
+    uint private multiplier = 1e6;
+
     struct Information {
         string title;
         string description;
@@ -87,18 +89,18 @@ contract Market {
         require(liquidity >= 10e6, "Liquidity must be up to 10 USD");
         require(info.resolved == false, "Market has already been resolved");
         require(info.yesPrice == 0, "Liquidity has already been initialized");
-        require(yesPrice >= (1e3) && yesPrice <= 9 * (1e3), "Initial probability must be up to 10% and less than 100%");
+        require(yesPrice >= multiplier / 10 && yesPrice <= 9 * (multiplier / 10), "Initial probability must be up to 10% and less than 100%");
 
-        //In UI, any percentage amount will be multiplied by 1e4
+        //In UI, any percentage amount will be multiplied by `multiplier`
     
-        uint noPrice = 1e4 - yesPrice;
+        uint noPrice = multiplier - yesPrice;
 
         info.yesPrice = yesPrice;
 
         info.noPrice = noPrice;
 
-        uint yesLiquidity = (yesPrice * liquidity) / 1e4;
-        uint noLiquidity = (noPrice * liquidity) / 1e4;
+        uint yesLiquidity = (yesPrice * liquidity) / multiplier;
+        uint noLiquidity = (noPrice * liquidity) / multiplier;
 
         info.yesLiquidity = yesLiquidity;
         info.noLiquidity = noLiquidity;
@@ -123,8 +125,8 @@ contract Market {
 
         require(info.yesPrice != 0, "Liquidity has not been initialized");
 
-        uint yesLiquidity = (info.yesPrice * amount) / 1e4;
-        uint noLiquidity = (info.noPrice * amount) / 1e4;
+        uint yesLiquidity = (info.yesPrice * amount) / multiplier;
+        uint noLiquidity = (info.noPrice * amount) / multiplier;
 
         uint sharesToGive = min((yesLiquidity * info.liquidityShares) / info.yesLiquidity, (noLiquidity * info.liquidityShares) / info.noLiquidity);
 
@@ -171,7 +173,7 @@ contract Market {
 
             uint ownedShares = shares[msg.sender].yesShares;
 
-            uint expectedUSDC = (ownedShares * info.yesPrice) / 1e4;
+            uint expectedUSDC = (ownedShares * info.yesPrice) / multiplier;
 
             require(USDC.transfer(msg.sender, expectedUSDC), "USDC transfer failed");
 
@@ -186,7 +188,7 @@ contract Market {
 
             uint ownedShares = shares[msg.sender].noShares;
 
-            uint expectedUSDC = (ownedShares * info.noPrice) / 1e4;
+            uint expectedUSDC = (ownedShares * info.noPrice) / multiplier;
 
             require(USDC.transfer(msg.sender, expectedUSDC), "USDC transfer failed");
 
@@ -210,11 +212,11 @@ contract Market {
         require(info.resolved == false, "Market already resolved");
 
         if (variant == 1) {
-            info.yesPrice = 1e4;
+            info.yesPrice = multiplier;
             info.noPrice = 0;
         }
         else if (variant == 0) {
-            info.noPrice = 1e4;
+            info.noPrice = multiplier;
             info.yesPrice = 0;
         }
 
@@ -232,7 +234,7 @@ contract Market {
         require(variant <= 1, "Variant must be 1 for Yes or 0 for No");
         require(buyOrSell <= 1, "Variant must be 1 for Buy or 0 for Sell");
 
-        // Impact must not be up to 30%
+        // Impact must not be more than 30%
 
         uint maxImpact = 3e4;
 
@@ -256,7 +258,7 @@ contract Market {
 
                 info.yesPrice = price;
 
-                info.noPrice = 1e4 - price;
+                info.noPrice = multiplier - price;
 
                 require(USDC.transferFrom(msg.sender, address(this), amount), "USDC transfer failed");
 
@@ -279,7 +281,7 @@ contract Market {
 
                 info.yesPrice = price;
 
-                info.noPrice = 1e4 - price;
+                info.noPrice = multiplier - price;
 
                 require(USDC.transfer(msg.sender, amountUSDC), "USDC transfer failed");
 
@@ -306,7 +308,7 @@ contract Market {
 
                 info.noPrice = price;
 
-                info.yesPrice = 1e4 - price;
+                info.yesPrice = multiplier - price;
 
                 require(USDC.transferFrom(msg.sender, address(this), amount), "USDC transfer failed");
 
@@ -329,7 +331,7 @@ contract Market {
 
                 info.noPrice = price;
 
-                info.yesPrice = 1e4 - price;
+                info.yesPrice = multiplier - price;
 
                 require(USDC.transfer(msg.sender, amountUSDC), "USDC transfer failed");
 
@@ -368,31 +370,31 @@ contract Market {
                 uint newYesLiquidity = info.yesLiquidity + amount;
                 uint newNoLiquidity = info.noLiquidity;
 
-                uint newYesPrice = (1e4 * newYesLiquidity) / (newYesLiquidity + newNoLiquidity);
+                uint newYesPrice = (multiplier * newYesLiquidity) / (newYesLiquidity + newNoLiquidity);
 
                 price = newYesPrice;
 
                 uint output = amount / newYesPrice;
 
-                amountOut = (output - (output / 100)) * 1e4;
+                amountOut = (output - (output / 100)) * multiplier;
 
-                estimatedProfit = (amountOut * 1e4) - amount;
+                estimatedProfit = (amountOut * multiplier) - amount;
 
             }
             else if (buyOrSell == 0) { // Sell
             
-                uint expectedAmount = (amount * info.yesPrice) / 1e4;
+                uint expectedAmount = (amount * info.yesPrice) / multiplier;
 
                 impact = calculateImpact(info.yesLiquidity, expectedAmount);
 
                 uint newYesLiquidity = info.yesLiquidity - expectedAmount;
                 uint newNoLiquidity = info.noLiquidity;
 
-                uint newYesPrice = (1e4 * newYesLiquidity) / (newYesLiquidity + newNoLiquidity);
+                uint newYesPrice = (multiplier * newYesLiquidity) / (newYesLiquidity + newNoLiquidity);
 
                 price = newYesPrice;
 
-                uint output = (amount * newYesPrice) / 1e4;
+                uint output = (amount * newYesPrice) / multiplier;
 
                 amountOut = output - (output / 100);
 
@@ -408,31 +410,31 @@ contract Market {
                 uint newNoLiquidity = info.noLiquidity + amount;
                 uint newYesLiquidity = info.yesLiquidity;
 
-                uint newNoPrice = (1e4 * newNoLiquidity) / (newNoLiquidity + newYesLiquidity);
+                uint newNoPrice = (multiplier * newNoLiquidity) / (newNoLiquidity + newYesLiquidity);
 
                 price = newNoPrice;
 
                 uint output = amount / newNoPrice;
 
-                amountOut = (output - (output / 100)) * 1e4;
+                amountOut = (output - (output / 100)) * multiplier;
 
-                estimatedProfit = (amountOut * 1e4) - amount;
+                estimatedProfit = (amountOut * multiplier) - amount;
 
             }
             else if (buyOrSell == 0) { // Sell
 
-                uint expectedAmount = (amount * info.noPrice) / 1e4;
+                uint expectedAmount = (amount * info.noPrice) / multiplier;
 
                 impact = calculateImpact(info.noLiquidity, expectedAmount);
 
                 uint newNoLiquidity = info.noLiquidity - expectedAmount;
                 uint newYesLiquidity = info.yesLiquidity;
 
-                uint newNoPrice = (1e4 * newNoLiquidity) / (newNoLiquidity + newYesLiquidity);
+                uint newNoPrice = (multiplier * newNoLiquidity) / (newNoLiquidity + newYesLiquidity);
 
                 price = newNoPrice;
 
-                uint output = (amount * newNoPrice) / 1e4;
+                uint output = (amount * newNoPrice) / multiplier;
 
                 amountOut = output - (output / 100);
 
