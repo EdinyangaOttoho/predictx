@@ -32,9 +32,9 @@ contract Factory {
         USDCAddress = USDCAddress_;
     }
 
-    function createMarket (address USDCAddress_, string memory title_, string memory description_, uint endDate_, string[] memory categories_) external returns (address) {
+    function createMarket (string memory title_, string memory description_, uint endDate_, string[] memory categories_) external returns (address) {
         address owner_ = msg.sender;
-        Market marketContract = new Market(USDCAddress_, title_, description_, endDate_, categories_, owner_, address(this));
+        Market marketContract = new Market(USDCAddress, title_, description_, endDate_, categories_, owner_, address(this));
         address contractAddress = address(marketContract);
         for (uint i = 0; i < categories_.length; i++) {
             if (categoryExists[categories_[i]] == false) {
