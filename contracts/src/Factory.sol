@@ -26,13 +26,15 @@ contract Factory {
 
     mapping(address=>bool) uniqueWallets;
 
+    mapping(address=>string[]) public media;
+
     Statistics public statistics;
 
     constructor(address USDCAddress_) {
         USDCAddress = USDCAddress_;
     }
 
-    function createMarket (string memory title_, string memory description_, uint endDate_, string[] memory categories_) external returns (address) {
+    function createMarket (string memory title_, string memory description_, uint endDate_, string[] memory categories_, string[] memory media_) external returns (address) {
         address owner_ = msg.sender;
         Market marketContract = new Market(USDCAddress, title_, description_, endDate_, categories_, owner_, address(this));
         address contractAddress = address(marketContract);
@@ -46,6 +48,7 @@ contract Factory {
         statistics.totalPools++;
         statistics.activeEvents++;
         markets[statistics.totalPools] = contractAddress;
+        media[contractAddress] = media_;
         return contractAddress;
     }
 
@@ -53,10 +56,10 @@ contract Factory {
         return categories;
     }
 
-    function getMarketInfo(address contractAddress, address account) external view returns (Market.Information memory, Market.Shares memory, uint) {
+    function getMarketInfo(address contractAddress, address account) external view returns (Market.Information memory, Market.Shares memory, uint, string[] memory) {
         (Market.Information memory info, Market.Shares memory shares) = Market(contractAddress).getInfo(account);
         uint volume = volumes[contractAddress];
-        return (info, shares, volume);
+        return (info, shares, volume, media[contractAddress]);
     }
 
     function stringToBytes32(string memory source) internal pure returns (bytes32 result) {
