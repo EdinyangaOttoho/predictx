@@ -28,14 +28,21 @@ contract Factory {
 
     mapping(address=>string[]) public media;
 
+    mapping(address=>bool) private adminsMap;
+
+    address[] public admins;
+
     Statistics public statistics;
 
     constructor(address USDCAddress_) {
         USDCAddress = USDCAddress_;
+        adminsMap[msg.sender] = true;
+        admins.push(msg.sender);
     }
 
     function createMarket (string memory title_, string memory description_, uint endDate_, string[] memory categories_, string[] memory media_) external returns (address) {
         address owner_ = msg.sender;
+        require(adminsMap[owner_] == true, "Only admins can create markets");
         Market marketContract = new Market(USDCAddress, title_, description_, endDate_, categories_, owner_, address(this));
         address contractAddress = address(marketContract);
         for (uint i = 0; i < categories_.length; i++) {
@@ -50,6 +57,19 @@ contract Factory {
         markets[statistics.totalPools] = contractAddress;
         media[contractAddress] = media_;
         return contractAddress;
+    }
+
+    function addAdmin(address account) external returns (bool) {
+        require(adminsMap[msg.sender] == true, "Caller must be an admin");
+        if (adminsMap[account] == false) {
+            adminsMap[account] = true;
+            admins.push(account);
+        }
+        return true;
+    }
+
+    function getAdmins() external view returns (address[] memory) {
+        return admins;
     }
 
     function getCategories() external view returns (string[] memory) {
